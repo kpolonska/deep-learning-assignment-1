@@ -81,9 +81,6 @@ We chose ConvNeXt-V2 Tiny because it gave the most stable curves. ResNet50d's be
 | 2 | 3-arch ensemble (ConvNeXt + EffNet-B3 + ResNet50d) | — | TBD | ≈ no gain; weaker members dilute ConvNeXt |
 | 3 | sqrt `pos_weight` (lecture formula) + RandomErasing + WeightedRandomSampler (×50 rare) + backbone frozen 3 epochs | EffNet-B3: 0.981 | 0.96011 | worse |
 | 4 | Revert sampler + freezing, resolution 448, batch 16 | 0.956 | TBD | worse on fold 0 |
-| 5 | **Teammates:** hyperparameter tuning — *fill in: LR / WD / batch / epochs tried* | TBD | TBD | worse |
-| 6 | 3-fold CV ensemble + horizontal-flip TTA + OOF thresholds | TBD | TBD | TBD |
-
 **Why the failures:**
 
 - **Sampler + `pos_weight` = double correction.** Both push toward rare classes. Together the model over-predicted the named pets and lost Cat/Dog precision.
