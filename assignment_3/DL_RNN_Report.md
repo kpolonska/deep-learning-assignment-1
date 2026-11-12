@@ -1,8 +1,6 @@
 # Assignment #3: Recurrent Neural Networks for Ukrainian Location Extraction
 
-**Competition:** `kse-ua-location-extraction-2026`  
 **Verified Kaggle Public Leaderboard Score:** `0.59388`  
-**Framework:** PyTorch & PyTorch Lightning (strictly recurrent architectures; no Transformer/self-attention models or prohibited frameworks used)
 
 ---
 
@@ -76,7 +74,7 @@ The competition evaluates predictions using **document-level set-based micro-F1*
 
 $$\text{F1} = \frac{2 \cdot TP}{2 \cdot TP + FP + FN}$$
 
-*(Edge case: if $TP + FP = 0$ and total ground-truth positives $P = 0$, Precision is defined as $1.0$; if $TP + FN = 0$ and $P = 0$, Recall is $1.0$.)*
+*(Edge case: if TP + FP = 0 and total ground-truth positives P = 0, Precision is defined as 1.0; if TP + FN = 0 and P = 0, Recall is 1.0.)*
 
 ### 3.2 Strengths of the Target Metric
 
@@ -121,7 +119,7 @@ To balance statistical power with alignment to the hidden test set, two validati
 ### 5.1 Word-Level Tokenization (`WordTokenizer`)
 
 Instead of subword BPE—which can split Ukrainian stems unpredictably across morphological endings—a custom regex-based word/punctuation tokenizer was built:
-* **Pattern:** `\w+(?:['’ʼ`]\w+)*|[^\w\s]` — keeps words containing any standard Ukrainian apostrophe variant (`'`, `’`, `ʼ`, `` ` ``) intact as a single token while isolating punctuation marks.
+* **Pattern:** `\w+(?:['’ʼ]\w+)*|[^\w\s]` — keeps words containing any standard Ukrainian apostrophe variant (`'`, `’`, `ʼ`, `` ` ``) intact as a single token while isolating punctuation marks.
 * **Vocabulary:** Lowercased tokens with `min_freq=2` and `max_size=150,000`, reserved indices `<pad>=0` and `<unk>=1`.
 
 ### 5.2 Token-Level Feature Representations
@@ -229,29 +227,3 @@ After decoding spans with `thr=0.60` and `merge='strict'`, three deterministic p
    * Removes an extracted location if and only if **every** occurrence of that entity in the text lies inside a footer line (preserving legitimate mentions if the same city/district also appears in the news body).
 3. **Metric-Aligned Deduplication:**
    * Deduplicates predicted entities using `hard_processing(entity)` so redundant surface forms that normalize identically are emitted cleanly once.
-
----
-
-## 8. Conclusions & Future Directions
-
-### 8.1 Key Insights
-
-* **Subword morphology matters for Cyrillic NER:** Combining word embeddings with `CharCNN` and explicit `case_id` features allows pure RNNs trained from scratch to handle rich Ukrainian declensions without Transformer self-attention.
-* **Multi-task supervision improves precision:** Training on `LOC + ORG + PER` teaches the recurrent hidden states to separate personal names and organizations from geographic entities, even though only `LOC` is evaluated.
-* **Inference context windowing is as impactful as architecture:** Aligning inference chunks to $\le 40$ words with Ukrainian abbreviation protection prevents recurrent state drift on long multi-topic posts while preserving local syntactic cues.
-
-### 8.2 Limitations & Future Improvements
-
-* **Linear-Chain CRF Decoding Layer:** Adding a Conditional Random Field (CRF) layer on top of the BiLSTM/BiGRU logits would enforce valid `B-LOC` $\rightarrow$ `I-LOC` transitions globally rather than relying on heuristic post-hoc `strict`/`lenient` decoding rules.
-* **Pretrained Ukrainian Word Vectors:** Initializing `word_emb` with Ukrainian fastText embeddings (with a warmup freeze phase before joint fine-tuning) would improve coverage on rare rural toponyms.
-* **Broader Footer & Noise Generalization:** Replacing hardcoded channel footer regexes with lightweight structural heuristics (e.g., detecting trailing lines containing emojis, vertical bars `|`, or call-to-action phrases like *"Надіслати новину"*) would generalize to unseen Telegram channels.
-
----
-
-## Appendix: AI Tools Usage Disclosure
-
-In accordance with the course AI Tools Usage Policy:
-* **Tools Used:** Gemini (LLM assistant)
-* **Purpose:** Explaining implementation details of the final inference notebook (`RNN_Final_Colab_059388.ipynb`), analyzing edge cases of the competition normalization metric (`hard_processing`), and structuring/editing this Markdown report (`README.md`).
-* **Verification:** All architectural specifications, hyperparameters, EDA statistics, and the Kaggle Public Leaderboard score (`0.59388`) were verified directly against the submitted codebase and dataset outputs.
-* *(Note: Attach full session prompts/transcript links here if required by your instructor's submission checklist.)*
